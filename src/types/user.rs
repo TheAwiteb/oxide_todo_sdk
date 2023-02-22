@@ -1,0 +1,41 @@
+use super::Todo;
+
+/// A oxide todo user. This is the user which is registered and logged in to the server.
+#[derive(Debug, serde::Deserialize)]
+pub struct User {
+    /// The base url.
+    #[serde(skip)]
+    pub(crate) base_url: String,
+    /// The username of the user. This is used to identify the user.
+    /// This is `None` if the user is logged in by token.
+    #[serde(rename = "username")]
+    pub(crate) name: Option<String>,
+    /// The user token, which is used to authenticate the user.
+    pub(crate) token: String,
+}
+
+impl User {
+    /// Rreturn the username of the user.
+    pub fn name(&self) -> Option<&str> {
+        self.name.as_deref()
+    }
+    /// Return the token of the user.
+    /// This is used to authenticate the user.
+    pub fn token(&self) -> &str {
+        &self.token
+    }
+    /// Create new todo.
+    pub fn create_todo(&self, title: impl AsRef<str>) -> Todo {
+        Todo {
+            base_url: self.base_url.clone(),
+            title: Some(title.as_ref().to_owned()),
+            ..Default::default()
+        }
+    }
+    // pub async fn todo_by_uuid(&self, uuid: Uuid) -> OxideResult<Todo> {
+    //     Ok(Todo {
+    //         base_url: self.base_url.clone(),
+    //         ..api_helper::get(&self.base_url, Endpoints::GetTodo, &self.token)
+    //     })
+    // }
+}

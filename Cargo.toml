@@ -1,0 +1,32 @@
+[package]
+name = "oxide_todo_sdk"
+description = "Rust SDK for the Oxide Todo API"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.64.0"
+authors = ["TheAwiteb <awiteb@hotmail.com>"]
+repository = "https://github.com/TheAwiteb/oxide_todo_sdk"
+documentation = "https://docs.rs/oxide_todo_sdk"
+license = "MIT"
+readme = "README.md"
+keywords = ["todo", "sdk"]
+
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[[example]]
+name = "user"
+required-features = ["debug"]
+
+[features]
+debug = []
+
+[dependencies]
+reqwest = { version = "= 0.11.14", features = ["json"] }
+serde = { version = "= 1.0.152", features = ["derive"] }
+serde_json = "= 1.0.93"
+thiserror = "= 1.0.38"
+uuid = { version = "= 1.3.0", features = ["v4", "serde"] }
+
+[dev-dependencies]
+tokio = { version = "1.25.0", features = ["macros", "rt", "rt-multi-thread"] }
