@@ -1,3 +1,7 @@
+use crate::api_helper::Endpoints;
+use crate::errors::Result as OxideResult;
+use uuid::Uuid;
+
 use super::Todo;
 
 /// A oxide todo user. This is the user which is registered and logged in to the server.
@@ -25,17 +29,24 @@ impl User {
         &self.token
     }
     /// Create new todo.
-    pub fn create_todo(&self, title: impl AsRef<str>) -> Todo {
+    pub fn create_todo(&self, title: impl Into<String>) -> Todo {
         Todo {
             base_url: self.base_url.clone(),
-            title: Some(title.as_ref().to_owned()),
+            title: Some(title.into()),
             ..Default::default()
         }
     }
-    // pub async fn todo_by_uuid(&self, uuid: Uuid) -> OxideResult<Todo> {
-    //     Ok(Todo {
-    //         base_url: self.base_url.clone(),
-    //         ..api_helper::get(&self.base_url, Endpoints::GetTodo, &self.token)
-    //     })
-    // }
+    /// Returns a todo by uuid.
+    pub async fn todo_by_uuid(&self, uuid: Uuid) -> OxideResult<Todo> {
+        Endpoints::GetTodo {
+            base_url: &self.base_url,
+            token: &self.token,
+            uuid: &uuid,
+        }
+        .await
+        .map(|v| Todo {
+            base_url: self.base_url.clone(),
+            ..serde_json::from_value(v).unwrap()
+        })
+    }
 }
