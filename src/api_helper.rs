@@ -67,6 +67,15 @@ pub enum Endpoints<'a> {
         title: &'a str,
         status: TodoStatus,
     },
+    /// The update todo endpoint. This endpoint is used to update a todo. (PUT)
+    /// Note: If you don't want to update the title or status, set it to `None`.
+    UpdateTodo {
+        base_url: &'a str,
+        token: &'a str,
+        uuid: &'a Uuid,
+        title: Option<&'a str>,
+        status: Option<TodoStatus>,
+    },
 }
 
 impl<'a> Endpoints<'a> {
@@ -77,6 +86,7 @@ impl<'a> Endpoints<'a> {
             Self::Login { base_url, .. } => format!("{base_url}/api/auth/login"),
             Self::GetTodo { base_url, uuid, .. } => format!("{base_url}/api/todos/{uuid}"),
             Self::CreateTodo { base_url, .. } => format!("{base_url}/api/todos"),
+            Self::UpdateTodo { base_url, uuid, .. } => format!("{base_url}/api/todos/{uuid}"),
         }
     }
     /// Returns the method of the endpoint.
@@ -84,6 +94,7 @@ impl<'a> Endpoints<'a> {
         use Endpoints::*;
         match self {
             Register { .. } | Login { .. } | CreateTodo { .. } => reqwest::Method::POST,
+            UpdateTodo { .. } => reqwest::Method::PUT,
             GetTodo { .. } => reqwest::Method::GET,
         }
     }
@@ -93,7 +104,9 @@ impl<'a> Endpoints<'a> {
         use Endpoints::*;
         match self {
             Register { .. } | Login { .. } => None,
-            GetTodo { token, .. } | CreateTodo { token, .. } => Some(token),
+            GetTodo { token, .. } | CreateTodo { token, .. } | UpdateTodo { token, .. } => {
+                Some(token)
+            }
         }
     }
 
@@ -110,6 +123,10 @@ impl<'a> Endpoints<'a> {
                 "password": password,
             })),
             Self::CreateTodo { title, status, .. } => req.json(&json!({
+                "title": title,
+                "status": status,
+            })),
+            Self::UpdateTodo { title, status, .. } => req.json(&json!({
                 "title": title,
                 "status": status,
             })),
