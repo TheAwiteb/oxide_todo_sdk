@@ -11,6 +11,28 @@ Add this to your `Cargo.toml`:
 [dependencies]
 oxide_todo_sdk = "0.1.0"
 ```
+
+## Examples
+This example shows how to create a new todo:
+```rust
+use oxide_todo_sdk::types::TodoStatus;
+use oxide_todo_sdk::Client;
+use oxide_todo_sdk::errors::Result as OxideTodoResult;
+
+#[tokio::main]
+async fn main() -> OxideTodoResult<()> {
+    let todo = Client::new("http://localhost:8080")
+        .login("username", "password")
+        .await?
+        .create_todo("title")
+        .set_status(TodoStatus::Completed)
+        .await?;
+    println!("Todo created: {todo:?}");
+    // ^ This need `debug` feature
+    Ok(())
+}
+```
+
 Check out the [documentation](https://docs.rs/oxide_todo_sdk) for more information. Also check out the [examples](examples).
 
 ## License
