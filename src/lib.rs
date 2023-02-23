@@ -4,7 +4,7 @@
 
 mod api_helper;
 mod client;
-mod types;
 
+pub mod types;
 pub mod errors;
 pub use client::*;
