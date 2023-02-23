@@ -1,5 +1,3 @@
-use crate::api_helper::Endpoints;
-use crate::errors::Result as OxideResult;
 use uuid::Uuid;
 
 use super::Todo;
@@ -40,20 +38,12 @@ impl User {
         }
     }
     /// Returns a todo by uuid. This will send a request to the server to get the todo.
-    pub async fn todo_by_uuid(&self, uuid: Uuid) -> OxideResult<Todo> {
-        // FIXME: This should not get the whole todo.
-        // It should only inintialize the todo with the uuid.
-        // Then the user can get the todo by `await`ing the future.
-        Endpoints::GetTodo {
-            base_url: &self.base_url,
-            token: &self.token,
-            uuid: &uuid,
-        }
-        .await
-        .map(|v| Todo {
+    pub fn todo_by_uuid(&self, uuid: Uuid) -> Todo {
+        Todo {
             base_url: self.base_url.clone(),
             token: self.token.clone(),
-            ..serde_json::from_value(v).unwrap()
-        })
+            uuid: Some(uuid),
+            ..Default::default()
+        }
     }
 }
