@@ -10,6 +10,22 @@ pub struct ErrorMessage {
     status: u16,
 }
 
+#[derive(Debug, thiserror::Error)]
+/// The error returned by the oxide todo sdk.
+pub enum SDKError {
+    /// Error when the field is missing. (This is not an error from the server.)
+    /// For example, when the user try
+    #[error("Missing field: {0}")]
+    MissingField(String),
+}
+
+impl SDKError {
+    /// Returns a new `SDKError::MissingField` error.
+    pub fn missing_field(field: impl Into<String>) -> Self {
+        Self::MissingField(field.into())
+    }
+}
+
 /// The errors coming from the oxide todo client.
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
@@ -19,6 +35,9 @@ pub enum Error {
     /// The error coming from the reqwest library.
     #[error("Reqwest error: {0}")]
     ReqwestError(#[from] reqwest::Error),
+    ///  The SDK error.
+    #[error("SDK error: {0}")]
+    SDKError(#[from] SDKError),
 }
 
 /// The result type of the oxide todo client.
