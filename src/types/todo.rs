@@ -18,8 +18,8 @@ pub enum TodoStatus {
     Progress,
     /// The todo are pending.
     Pending,
-    /// The todo are canceled.
-    Canceled,
+    /// The todo are cancelled.
+    Cancelled,
 }
 
 /// The todo struct.
@@ -117,7 +117,19 @@ impl IntoFuture for Todo {
                     })
                 } else {
                     // The user want to update the todo.
-                    unimplemented!()
+                    Endpoints::UpdateTodo {
+                        base_url: &self.base_url,
+                        token: &self.token,
+                        uuid: &uuid,
+                        title: self.title.as_deref(),
+                        status: self.status,
+                    }
+                    .await
+                    .map(|v| Todo {
+                        base_url: self.base_url,
+                        token: self.token,
+                        ..serde_json::from_value(v).unwrap()
+                    })
                 }
             } else {
                 // The todo is not created, we want to create it.
