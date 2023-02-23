@@ -37,7 +37,7 @@ impl User {
             ..Default::default()
         }
     }
-    /// Returns a todo by uuid. This will send a request to the server to get the todo.
+    /// Returns a todo by uuid. await the future after this to get the todo. Or await it after you set the status or title to update the todo on the server.
     pub fn todo_by_uuid(&self, uuid: Uuid) -> Todo {
         Todo {
             base_url: self.base_url.clone(),
