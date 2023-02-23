@@ -16,10 +16,14 @@ async fn main() -> OxideTodoResult<()> {
 
     // Create a new todo.
     let todo = user
-        .create_todo("Some new todo24")
+        .create_todo("My new todo")
         .set_status(TodoStatus::Completed)
         .await?;
     println!("Todo created: {todo:#?}");
+
+    // Cancel the todo by update its status. (you can also update the title using `Todo::set_title`).
+    let todo = todo.set_status(TodoStatus::Cancelled).await?;
+    println!("Todo cancelled: {todo:#?}");
 
     Ok(())
 }
