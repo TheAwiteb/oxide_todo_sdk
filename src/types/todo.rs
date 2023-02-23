@@ -97,10 +97,28 @@ impl IntoFuture for Todo {
             // There is tow scenarios here:
             // 1. The todo is created, and we want to update it.
             // 2. The todo is not created, and we want to create it.
+            // 3. The todo is created, and we want to get it.
             // We can know if the todo is created by checking if thay have a uuid or not.
-            if let Some(_uuid) = self.uuid {
+            if let Some(uuid) = self.uuid {
                 // The todo is created, we want to update it.
-                unimplemented!()
+                // Also maybe the user want to get the todo, so we need to check if all fields are None or not.
+                if self.status.is_none() && self.title.is_none() {
+                    // The user want to get the todo.
+                    Endpoints::GetTodo {
+                        base_url: &self.base_url,
+                        token: &self.token,
+                        uuid: &uuid,
+                    }
+                    .await
+                    .map(|v| Todo {
+                        base_url: self.base_url,
+                        token: self.token,
+                        ..serde_json::from_value(v).unwrap()
+                    })
+                } else {
+                    // The user want to update the todo.
+                    unimplemented!()
+                }
             } else {
                 // The todo is not created, we want to create it.
                 Endpoints::CreateTodo {
