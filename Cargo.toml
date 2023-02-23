@@ -17,6 +17,9 @@ keywords = ["todo", "sdk"]
 [[example]]
 name = "user"
 required-features = ["debug"]
+[[example]]
+name = "todo"
+required-features = ["debug"]
 
 [features]
 debug = []
