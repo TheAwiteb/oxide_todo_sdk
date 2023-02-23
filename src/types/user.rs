@@ -29,15 +29,21 @@ impl User {
         &self.token
     }
     /// Create new todo.
+    /// ### Note
+    /// You need to add a status to the todo before you await the future. Else it will return an error.
     pub fn create_todo(&self, title: impl Into<String>) -> Todo {
         Todo {
             base_url: self.base_url.clone(),
+            token: self.token.clone(),
             title: Some(title.into()),
             ..Default::default()
         }
     }
-    /// Returns a todo by uuid.
+    /// Returns a todo by uuid. This will send a request to the server to get the todo.
     pub async fn todo_by_uuid(&self, uuid: Uuid) -> OxideResult<Todo> {
+        // FIXME: This should not get the whole todo.
+        // It should only inintialize the todo with the uuid.
+        // Then the user can get the todo by `await`ing the future.
         Endpoints::GetTodo {
             base_url: &self.base_url,
             token: &self.token,
@@ -46,6 +52,7 @@ impl User {
         .await
         .map(|v| Todo {
             base_url: self.base_url.clone(),
+            token: self.token.clone(),
             ..serde_json::from_value(v).unwrap()
         })
     }

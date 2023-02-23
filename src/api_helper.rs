@@ -3,7 +3,10 @@ use std::{
     pin::Pin,
 };
 
-use crate::errors::{Error, ErrorMessage, Result as OxideResult};
+use crate::{
+    errors::{Error, ErrorMessage, Result as OxideResult},
+    types::TodoStatus,
+};
 use reqwest::RequestBuilder;
 use serde_json::json;
 use uuid::Uuid;
@@ -57,6 +60,13 @@ pub enum Endpoints<'a> {
         token: &'a str,
         uuid: &'a Uuid,
     },
+    /// The create todo endpoint. This endpoint is used to create a new todo. (POST)
+    CreateTodo {
+        base_url: &'a str,
+        token: &'a str,
+        title: &'a str,
+        status: TodoStatus,
+    },
 }
 
 impl<'a> Endpoints<'a> {
@@ -65,14 +75,15 @@ impl<'a> Endpoints<'a> {
         match self {
             Self::Register { base_url, .. } => format!("{base_url}/api/auth/register"),
             Self::Login { base_url, .. } => format!("{base_url}/api/auth/login"),
-            Self::GetTodo { base_url, uuid, .. } => format!("{base_url}/api/todo/{uuid}"),
+            Self::GetTodo { base_url, uuid, .. } => format!("{base_url}/api/todos/{uuid}"),
+            Self::CreateTodo { base_url, .. } => format!("{base_url}/api/todos"),
         }
     }
     /// Returns the method of the endpoint.
     pub fn method(&self) -> reqwest::Method {
         use Endpoints::*;
         match self {
-            Register { .. } | Login { .. } => reqwest::Method::POST,
+            Register { .. } | Login { .. } | CreateTodo { .. } => reqwest::Method::POST,
             GetTodo { .. } => reqwest::Method::GET,
         }
     }
@@ -82,33 +93,38 @@ impl<'a> Endpoints<'a> {
         use Endpoints::*;
         match self {
             Register { .. } | Login { .. } => None,
-            GetTodo { token, .. } => Some(token),
+            GetTodo { token, .. } | CreateTodo { token, .. } => Some(token),
+        }
+    }
+
+    /// Add a body to the request if the endpoint requires a body.
+    pub fn add_body(&self, req: RequestBuilder) -> RequestBuilder {
+        match self {
+            Self::Register {
+                username, password, ..
+            }
+            | Self::Login {
+                username, password, ..
+            } => req.json(&json!({
+                "username": username,
+                "password": password,
+            })),
+            Self::CreateTodo { title, status, .. } => req.json(&json!({
+                "title": title,
+                "status": status,
+            })),
+            _ => req,
         }
     }
 }
 
 impl<'a> IntoFuture for Endpoints<'a> {
     type Output = OxideResult<serde_json::Value>;
-    type IntoFuture = Pin<Box<dyn Future<Output = Self::Output> + 'a>>;
+    type IntoFuture = Pin<Box<dyn Future<Output = Self::Output> + Send + 'a>>;
 
     fn into_future(self) -> Self::IntoFuture {
         Box::pin(async move {
-            let req = reqwest::Client::new().request(self.method(), &self.uri());
-            let req = match self {
-                Endpoints::Register {
-                    username, password, ..
-                } => req.json(&json!({
-                    "username": username,
-                    "password": password,
-                })),
-                Endpoints::Login {
-                    username, password, ..
-                } => req.json(&json!({
-                    "username": username,
-                    "password": password,
-                })),
-                _ => req,
-            };
+            let req = self.add_body(reqwest::Client::new().request(self.method(), self.uri()));
             // All the endpoints require the user to be logged in except the register and login endpoints.
             response_result(
                 add_token(req, self.token())
