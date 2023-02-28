@@ -22,7 +22,51 @@ pub enum TodoStatus {
     Cancelled,
 }
 
-/// The todo struct.
+/// Todo type is flexible. You can await it directly. How its works?
+/// - If the todo you awaited it has a uuid, it will update the todo on the server if you set the title or status, else will get the todo from the server.
+/// - If the todo you awaited it has no uuid, it will create a new todo on the server.
+///
+/// For example you want to create a new todo:
+/// ```rust |no_run
+/// use oxide_todo_sdk::Client;
+/// use oxide_todo_sdk::types::TodoStatus;
+/// use oxide_todo_sdk::errors::Result as OxideResult;
+///
+/// #[tokio::main]
+/// async fn main() -> OxideResult<()> {
+///     let user = Client::new("http://localhost:8080").login("username", "password").await?;
+///     let todo = user.create_todo("My new todo").set_status(TodoStatus::Progress).await?;
+///     Ok(())
+/// }
+/// ```
+/// Just like that. You can also update a todo by uuid:
+/// ```rust |no_run
+/// use oxide_todo_sdk::Client;
+/// use oxide_todo_sdk::types::TodoStatus;
+/// use oxide_todo_sdk::errors::Result as OxideResult;
+/// use uuid::Uuid;
+///
+/// #[tokio::main]
+/// async fn main() -> OxideResult<()> {
+///     let user = Client::new("http://localhost:8080").login("username", "password").await?;
+///     let todo = user.todo_by_uuid(Uuid::new_v4()).set_status(TodoStatus::Progress).await?;
+///     Ok(())
+/// }
+/// ```
+/// And to get the todo, you will do same thing as above. just don't set the status or title.
+/// ```rust |no_run
+/// use oxide_todo_sdk::Client;
+/// use oxide_todo_sdk::errors::Result as OxideResult;
+/// use uuid::Uuid;
+///
+/// #[tokio::main]
+/// async fn main() -> OxideResult<()> {
+///     let user = Client::new("http://localhost:8080").login("username", "password").await?;
+///     let todo = user.todo_by_uuid(Uuid::new_v4()).await?;
+///     Ok(())
+/// }
+/// ```
+/// Easy right?
 #[derive(serde::Deserialize, Default)]
 #[cfg_attr(feature = "debug", derive(Debug))]
 #[must_use]
