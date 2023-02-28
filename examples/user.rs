@@ -14,7 +14,13 @@ async fn main() -> OxideTodoResult<()> {
     let logined_user = client.login("username", "password").await?;
     println!("Logined the user successfully. User: {logined_user:?}");
     // Login the user by token. (This will not send any request to the server, and will not check if the token is valid.)
-    let by_token_user = client.login_by_token("token")?;
+    let by_token_user = client.login_by_token("token");
     println!("Logined the user by token successfully. User: {by_token_user:?}");
+
+    // Revoke the logined user's token.
+    println!("Revoking the token...");
+    let logined_user = logined_user.revoke_token().await?;
+    println!("Revoked the token successfully. User: {logined_user:?}");
+
     Ok(())
 }
