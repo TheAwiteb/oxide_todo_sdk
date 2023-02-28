@@ -1,9 +1,10 @@
-use uuid::Uuid;
-
 use super::Todo;
+use crate::{api_helper::Endpoints, errors::Result as OxideResult};
+use uuid::Uuid;
 
 /// A oxide todo user. This is the user which is registered and logged in to the server.
 #[derive(Debug, serde::Deserialize)]
+#[must_use]
 pub struct User {
     /// The base url.
     #[serde(skip)]
@@ -45,5 +46,20 @@ impl User {
             uuid: Some(uuid),
             ..Default::default()
         }
+    }
+
+    /// Revokes the token of the user.
+    /// ## Note
+    /// this will return a new user with a new token. So you need to update the user.
+    pub async fn revoke_token(self) -> OxideResult<Self> {
+        let user = Endpoints::RevokeToken {
+            base_url: &self.base_url,
+            token: &self.token,
+        }
+        .await?;
+        Ok(Self {
+            base_url: self.base_url,
+            ..serde_json::from_value(user).unwrap()
+        })
     }
 }

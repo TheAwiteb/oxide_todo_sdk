@@ -54,6 +54,8 @@ pub enum Endpoints<'a> {
         username: &'a str,
         password: &'a str,
     },
+    /// The revoke token endpoint. This endpoint is used to revoke a token. (PATCH)
+    RevokeToken { base_url: &'a str, token: &'a str },
     /// The get todo endpoint. This endpoint is used to get a todo by uuid. (GET)
     GetTodo {
         base_url: &'a str,
@@ -84,6 +86,7 @@ impl<'a> Endpoints<'a> {
         match self {
             Self::Register { base_url, .. } => format!("{base_url}/api/auth/register"),
             Self::Login { base_url, .. } => format!("{base_url}/api/auth/login"),
+            Self::RevokeToken { base_url, .. } => format!("{base_url}/api/auth/revoke"),
             Self::GetTodo { base_url, uuid, .. } => format!("{base_url}/api/todos/{uuid}"),
             Self::CreateTodo { base_url, .. } => format!("{base_url}/api/todos"),
             Self::UpdateTodo { base_url, uuid, .. } => format!("{base_url}/api/todos/{uuid}"),
@@ -94,6 +97,7 @@ impl<'a> Endpoints<'a> {
         use Endpoints::*;
         match self {
             Register { .. } | Login { .. } | CreateTodo { .. } => reqwest::Method::POST,
+            RevokeToken { .. } => reqwest::Method::PATCH,
             UpdateTodo { .. } => reqwest::Method::PUT,
             GetTodo { .. } => reqwest::Method::GET,
         }
@@ -104,9 +108,10 @@ impl<'a> Endpoints<'a> {
         use Endpoints::*;
         match self {
             Register { .. } | Login { .. } => None,
-            GetTodo { token, .. } | CreateTodo { token, .. } | UpdateTodo { token, .. } => {
-                Some(token)
-            }
+            GetTodo { token, .. }
+            | CreateTodo { token, .. }
+            | UpdateTodo { token, .. }
+            | RevokeToken { token, .. } => Some(token),
         }
     }
 
