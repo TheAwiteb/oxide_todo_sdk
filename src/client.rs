@@ -52,11 +52,11 @@ impl Client {
 
     /// Login the user by token.
     /// This will not make a request to the server. It will just create a new user with the given token.
-    pub fn login_by_token(&self, token: impl AsRef<str>) -> OxideResult<User> {
-        Ok(User {
+    pub fn login_by_token(&self, token: impl AsRef<str>) -> User {
+        User {
             base_url: self.base_url.clone(),
             name: None,
             token: token.as_ref().to_owned(),
-        })
+        }
     }
 }
