@@ -16,6 +16,19 @@ impl Client {
     }
 
     /// Login the user with username and password.
+    /// ### Example
+    /// ```rust |no_run
+    /// use oxide_todo::Client;
+    /// use oxide_todo::errors::Result as OxideResult;
+    ///
+    /// #[tokio::main]
+    /// async fn main() -> OxideResult<()> {
+    ///    let client = Client::new("http://localhost:8080");
+    ///   let user = client.login("username", "password").await?;
+    ///   // Now you can use the user to create todos, etc.
+    ///  Ok(())
+    /// }
+    /// ```
     pub async fn login(
         &self,
         username: impl AsRef<str>,
@@ -33,6 +46,19 @@ impl Client {
         })
     }
     /// Register the user with username and password.
+    /// ### Example
+    /// ```rust |no_run
+    /// use oxide_todo::Client;
+    /// use oxide_todo::errors::Result as OxideResult;
+    ///
+    /// #[tokio::main]
+    /// async fn main() -> OxideResult<()> {
+    ///     let client = Client::new("http://localhost:8080");
+    ///     let user = client.register("username", "password").await?;
+    ///     // Now you can use the user to create todos, etc.
+    ///     Ok(())
+    /// }
+    /// ```
     pub async fn register(
         &self,
         username: impl AsRef<str>,
@@ -52,6 +78,13 @@ impl Client {
 
     /// Login the user by token.
     /// This will not make a request to the server. It will just create a new user with the given token.
+    /// ### Example
+    /// ```rust |no_run
+    /// use oxide_todo::Client;
+    /// let client = Client::new("http://localhost:8080");
+    /// let user = client.login_by_token("YOUR_TOKEN");
+    /// // Now you can use the user to create todos, etc.
+    /// ```
     pub fn login_by_token(&self, token: impl AsRef<str>) -> User {
         User {
             base_url: self.base_url.clone(),

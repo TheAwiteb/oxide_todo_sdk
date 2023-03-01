@@ -3,6 +3,13 @@ use crate::{api_helper::Endpoints, errors::Result as OxideResult};
 use uuid::Uuid;
 
 /// A oxide todo user. This is the user which is registered and logged in to the server.
+///
+/// You can create a new user by using [`Client::register`], [`Client::login`] or [`Client::login_by_token`], and you can revoke the token by using [`User::revoke_token`].
+/// You can create a new todo by using [`User::create_todo`] and you can get a todo by using [`User::todo_by_uuid`].
+///
+/// [`Client::register`]: crate::Client::register
+/// [`Client::login`]: crate::Client::login
+/// [`Client::login_by_token`]: crate::Client::login_by_token
 #[derive(Debug, serde::Deserialize)]
 #[must_use]
 pub struct User {
@@ -29,7 +36,21 @@ impl User {
     }
     /// Create new todo.
     /// ### Note
-    /// You need to add a status to the todo before you await the future. Else it will return an error.
+    /// You cannot create a todo without a status. So you need to set the status of the todo after this.
+    /// ### Example
+    /// ```rust |no_run
+    /// use oxide_todo_sdk::Client;
+    /// use oxide_todo_sdk::errors::Result as OxideResult;
+    /// use oxide_todo_sdk::types::TodoStatus;
+    ///
+    /// #[tokio::main]
+    /// async fn main() -> OxideResult<()> {
+    ///     let user = Client::new("http://localhost:8080").login_by_token("YOUR_TOKEN");
+    ///     let todo = user.create_todo("My new todo")
+    ///         .status(TodoStatus::Completed) // Need to set the status of the todo before sending the request
+    ///         .await?;
+    ///     Ok(())
+    /// }
     pub fn create_todo(&self, title: impl Into<String>) -> Todo {
         Todo {
             base_url: self.base_url.clone(),
@@ -39,6 +60,22 @@ impl User {
         }
     }
     /// Returns a todo by uuid. await the future after this to get the todo. Or await it after you set the status or title to update the todo on the server.
+    /// ### Example
+    /// ```rust |no_run
+    /// use oxide_todo_sdk::Client;
+    /// use oxide_todo_sdk::errors::Result as OxideResult;
+    /// use oxide_todo_sdk::types::TodoStatus;
+    /// use uuid::Uuid;
+    ///
+    /// #[tokio::main]
+    /// async fn main() -> OxideResult<()> {
+    ///     let user = Client::new("http://localhost:8080").login_by_token("YOUR_TOKEN");
+    ///     let todo = user.todo_by_uuid(Uuid::new_v4()) // Get a todo by uuid
+    ///         .status(TodoStatus::Completed); // Update the status of the todo
+    ///         .await?; // Send the update request to the server
+    ///     Ok(())
+    /// }
+    /// ```
     pub fn todo_by_uuid(&self, uuid: Uuid) -> Todo {
         Todo {
             base_url: self.base_url.clone(),
@@ -51,6 +88,19 @@ impl User {
     /// Revokes the token of the user.
     /// ## Note
     /// this will return a new user with a new token. So you need to update the user.
+    /// ### Example
+    /// ```rust |no_run
+    /// use oxide_todo_sdk::Client;
+    /// use oxide_todo_sdk::errors::Result as OxideResult;
+    ///
+    /// #[tokio::main]
+    /// async fn main() -> OxideResult<()> {
+    ///     let client = Client::new("http://localhost:8080").login_by_token("YOUR_TOKEN");
+    ///     let user = user.revoke_token().await?;
+    ///     // Just the token has been revoked
+    ///     Ok(())
+    /// }
+    /// ```
     pub async fn revoke_token(self) -> OxideResult<Self> {
         let user = Endpoints::RevokeToken {
             base_url: &self.base_url,
