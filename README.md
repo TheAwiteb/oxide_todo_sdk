@@ -45,7 +45,7 @@ Check out the [documentation](https://docs.rs/oxide_todo_sdk) for more informati
     - [x] Create Todo
     - [x] Get Todo
     - [x] Update Todo
-    - [ ] Delete Todo
+    - [X] Delete Todo
     - [ ] List Todos (including search)
     - [ ] Delete All Todos
 - [Server Metadata]
