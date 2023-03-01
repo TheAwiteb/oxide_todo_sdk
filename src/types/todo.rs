@@ -34,7 +34,7 @@ pub enum TodoStatus {
 ///
 /// #[tokio::main]
 /// async fn main() -> OxideResult<()> {
-///     let user = Client::new("http://localhost:8080").login("username", "password").await?;
+///     let user = Client::new("http://localhost:8080").login_by_token("YOUR_TOKEN");
 ///     let todo = user.create_todo("My new todo").set_status(TodoStatus::Progress).await?;
 ///     Ok(())
 /// }
@@ -48,7 +48,7 @@ pub enum TodoStatus {
 ///
 /// #[tokio::main]
 /// async fn main() -> OxideResult<()> {
-///     let user = Client::new("http://localhost:8080").login("username", "password").await?;
+///     let user = Client::new("http://localhost:8080").login_by_token("YOUR_TOKEN");
 ///     let todo = user.todo_by_uuid(Uuid::new_v4()).set_status(TodoStatus::Progress).await?;
 ///     Ok(())
 /// }
@@ -61,9 +61,23 @@ pub enum TodoStatus {
 ///
 /// #[tokio::main]
 /// async fn main() -> OxideResult<()> {
-///     let user = Client::new("http://localhost:8080").login("username", "password").await?;
+///     let user = Client::new("http://localhost:8080").login_by_token("YOUR_TOKEN");
 ///     let todo = user.todo_by_uuid(Uuid::new_v4()).await?;
 ///     Ok(())
+/// }
+/// ```
+/// You can also delete the todo by calling `Todo::delete`:
+/// ```rust |no_run
+/// use oxide_todo_sdk::Client;
+/// use oxide_todo_sdk::errors::Result as OxideResult;
+///
+/// #[tokio::main]
+/// async fn main() -> OxideResult<()> {
+///     let todo = Client::new("http://localhost:8080")
+///         .login_by_token("YOUR_TOKEN")
+///         .create_todo("My new todo")
+///         .await?;
+///     todo.delete().await
 /// }
 /// ```
 /// Easy right?
@@ -90,6 +104,38 @@ pub struct Todo {
 }
 
 impl Todo {
+    /// Delete the todo. This will delete the todo from the server.
+    /// If the todo has no uuid, it will return an error.
+    /// ### Example
+    /// ```rust |no_run
+    /// use oxide_todo_sdk::Client;
+    /// use oxide_todo_sdk::errors::Result as OxideResult;
+    ///
+    /// #[tokio::main]
+    /// async fn main() -> OxideResult<()> {
+    ///     // Create todo
+    ///     let todo = Client::new("http://localhost:8080")
+    ///         .login_by_token("YOUR_TOKEN")
+    ///         .create_todo("My new todo")
+    ///         .await?;
+    ///     // Delete todo
+    ///     todo.delete().await
+    /// }
+    /// ```
+    pub async fn delete(self) -> OxideResult<()> {
+        if let Some(uuid) = self.uuid {
+            Endpoints::DeleteTodo {
+                base_url: &self.base_url,
+                token: &self.token,
+                uuid: &uuid,
+            }
+            .await
+            .map(|_| ())
+        } else {
+            Err(SDKError::MissingField("`uuid` is required to delete a todo.".to_owned()).into())
+        }
+    }
+
     /// Returns a UUID of the todo, if the todo is created. Else it will return `None`.
     pub fn uuid(&self) -> Option<Uuid> {
         self.uuid

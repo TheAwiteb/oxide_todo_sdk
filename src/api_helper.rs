@@ -78,18 +78,26 @@ pub enum Endpoints<'a> {
         title: Option<&'a str>,
         status: Option<TodoStatus>,
     },
+    /// The delete todo endpoint. This endpoint is used to delete a todo. (DELETE)
+    DeleteTodo {
+        base_url: &'a str,
+        token: &'a str,
+        uuid: &'a Uuid,
+    },
 }
 
 impl<'a> Endpoints<'a> {
     /// Returns the uri of the endpoint.
     pub fn uri(&self) -> String {
+        use Endpoints::*;
         match self {
-            Self::Register { base_url, .. } => format!("{base_url}/api/auth/register"),
-            Self::Login { base_url, .. } => format!("{base_url}/api/auth/login"),
-            Self::RevokeToken { base_url, .. } => format!("{base_url}/api/auth/revoke"),
-            Self::GetTodo { base_url, uuid, .. } => format!("{base_url}/api/todos/{uuid}"),
-            Self::CreateTodo { base_url, .. } => format!("{base_url}/api/todos"),
-            Self::UpdateTodo { base_url, uuid, .. } => format!("{base_url}/api/todos/{uuid}"),
+            Register { base_url, .. } => format!("{base_url}/api/auth/register"),
+            Login { base_url, .. } => format!("{base_url}/api/auth/login"),
+            RevokeToken { base_url, .. } => format!("{base_url}/api/auth/revoke"),
+            CreateTodo { base_url, .. } => format!("{base_url}/api/todos"),
+            GetTodo { base_url, uuid, .. }
+            | UpdateTodo { base_url, uuid, .. }
+            | DeleteTodo { base_url, uuid, .. } => format!("{base_url}/api/todos/{uuid}"),
         }
     }
     /// Returns the method of the endpoint.
@@ -100,6 +108,7 @@ impl<'a> Endpoints<'a> {
             RevokeToken { .. } => reqwest::Method::PATCH,
             UpdateTodo { .. } => reqwest::Method::PUT,
             GetTodo { .. } => reqwest::Method::GET,
+            DeleteTodo { .. } => reqwest::Method::DELETE,
         }
     }
     /// Returns the user token if the endpoint requires the user to be logged in.
@@ -111,6 +120,7 @@ impl<'a> Endpoints<'a> {
             GetTodo { token, .. }
             | CreateTodo { token, .. }
             | UpdateTodo { token, .. }
+            | DeleteTodo { token, .. }
             | RevokeToken { token, .. } => Some(token),
         }
     }
