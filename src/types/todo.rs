@@ -9,7 +9,8 @@ use std::{
 use uuid::Uuid;
 
 /// The todo status.
-#[derive(Debug, serde::Serialize, serde::Deserialize)]
+#[derive(Clone, serde::Serialize, serde::Deserialize)]
+#[cfg_attr(feature = "debug", derive(Debug))]
 #[serde(rename_all = "lowercase")]
 pub enum TodoStatus {
     /// The todo are completed.
@@ -175,6 +176,18 @@ impl Todo {
     /// Returns the last update time of the todo.
     pub fn updated_at(&self) -> Option<u64> {
         self.updated_at
+    }
+}
+
+impl ToString for TodoStatus {
+    fn to_string(&self) -> String {
+        match self {
+            Self::Cancelled => "cancelled",
+            Self::Completed => "completed",
+            Self::Progress => "progress",
+            Self::Pending => "pending",
+        }
+        .to_owned()
     }
 }
 
