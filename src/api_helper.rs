@@ -5,7 +5,7 @@ use std::{
 
 use crate::{
     errors::{Error, ErrorMessage, Result as OxideResult},
-    types::TodoStatus,
+    types::{TodoStatus, Todos},
 };
 use reqwest::RequestBuilder;
 use serde_json::json;
@@ -27,7 +27,7 @@ pub async fn add_token(
 /// This will convert the response to `T` if the response is successful. else it will return the error message.
 pub async fn response_result<T: for<'a> serde::Deserialize<'a>>(
     response: reqwest::Response,
-) -> Result<T, Error> {
+) -> OxideResult<T> {
     if response.status().is_success() {
         response.json::<T>().await.map_err(From::from)
     } else {
@@ -84,6 +84,8 @@ pub enum Endpoints<'a> {
         token: &'a str,
         uuid: &'a Uuid,
     },
+    /// The get todos endpoint. This endpoint is used to get all the todos. (GET)
+    GetTodos(&'a Todos),
 }
 
 impl<'a> Endpoints<'a> {
@@ -95,6 +97,7 @@ impl<'a> Endpoints<'a> {
             Login { base_url, .. } => format!("{base_url}/api/auth/login"),
             RevokeToken { base_url, .. } => format!("{base_url}/api/auth/revoke"),
             CreateTodo { base_url, .. } => format!("{base_url}/api/todos"),
+            GetTodos(Todos { base_url, .. }) => format!("{base_url}/api/todos"),
             GetTodo { base_url, uuid, .. }
             | UpdateTodo { base_url, uuid, .. }
             | DeleteTodo { base_url, uuid, .. } => format!("{base_url}/api/todos/{uuid}"),
@@ -107,7 +110,7 @@ impl<'a> Endpoints<'a> {
             Register { .. } | Login { .. } | CreateTodo { .. } => reqwest::Method::POST,
             RevokeToken { .. } => reqwest::Method::PATCH,
             UpdateTodo { .. } => reqwest::Method::PUT,
-            GetTodo { .. } => reqwest::Method::GET,
+            GetTodo { .. } | GetTodos { .. } => reqwest::Method::GET,
             DeleteTodo { .. } => reqwest::Method::DELETE,
         }
     }
@@ -117,6 +120,7 @@ impl<'a> Endpoints<'a> {
         use Endpoints::*;
         match self {
             Register { .. } | Login { .. } => None,
+            GetTodos(Todos { token, .. }) => Some(token),
             GetTodo { token, .. }
             | CreateTodo { token, .. }
             | UpdateTodo { token, .. }
@@ -148,6 +152,37 @@ impl<'a> Endpoints<'a> {
             _ => req,
         }
     }
+
+    /// Add a query to the request if the endpoint requires a query.
+    /// This will return the request builder with the query added.
+    pub fn add_query(&self, req: RequestBuilder) -> RequestBuilder {
+        match self {
+            Self::GetTodos(Todos {
+                limit,
+                offset,
+                order,
+                order_by,
+                status,
+                title,
+                ..
+            }) => {
+                let mut req = req.query(&[
+                    ("limit", limit.to_string()),
+                    ("offset", offset.to_string()),
+                    ("order", order.to_string()),
+                    ("order_by", order_by.to_string()),
+                ]);
+                if let Some(status) = status {
+                    req = req.query(&[("status", status.to_string())]);
+                };
+                if let Some(title) = title {
+                    req = req.query(&[("title", title.to_string())]);
+                };
+                req
+            }
+            _ => req,
+        }
+    }
 }
 
 impl<'a> IntoFuture for Endpoints<'a> {
@@ -159,7 +194,7 @@ impl<'a> IntoFuture for Endpoints<'a> {
             let req = self.add_body(reqwest::Client::new().request(self.method(), self.uri()));
             // All the endpoints require the user to be logged in except the register and login endpoints.
             response_result(
-                add_token(req, self.token())
+                add_token(self.add_query(req), self.token())
                     .await
                     .send()
                     .await
