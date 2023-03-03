@@ -1,4 +1,4 @@
-use super::Todo;
+use super::{Todo, Todos};
 use crate::{api_helper::Endpoints, errors::Result as OxideResult};
 use uuid::Uuid;
 
@@ -10,7 +10,8 @@ use uuid::Uuid;
 /// [`Client::register`]: crate::Client::register
 /// [`Client::login`]: crate::Client::login
 /// [`Client::login_by_token`]: crate::Client::login_by_token
-#[derive(Debug, serde::Deserialize)]
+#[derive(serde::Deserialize, Clone)]
+#[cfg_attr(feature = "debug", derive(Debug))]
 #[must_use]
 pub struct User {
     /// The base url.
@@ -111,5 +112,23 @@ impl User {
             base_url: self.base_url,
             ..serde_json::from_value(user).unwrap()
         })
+    }
+
+    /// Returns the todos of the user.
+    /// ### Example
+    /// ```rust |no_run
+    /// use oxide_todo_sdk::Client;
+    /// use oxide_todo_sdk::errors::Result as OxideResult;
+    ///
+    /// #[tokio::main]
+    /// async fn main() -> OxideResult<()> {
+    ///     let user = Client::new("http://localhost:8080").login_by_token("YOUR_TOKEN");
+    ///     let todos = user.todos().limit(3).offset(1).await?;
+    ///     // Will return the first 3 todos after the first todo (2, 3, 4)
+    ///     Ok(())
+    /// }
+    /// ```
+    pub fn todos(&self) -> Todos {
+        Todos::new(&self.base_url, &self.token)
     }
 }
