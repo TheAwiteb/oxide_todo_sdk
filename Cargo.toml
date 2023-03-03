@@ -20,6 +20,8 @@ required-features = ["debug"]
 [[example]]
 name = "todo"
 required-features = ["debug"]
+[[example]]
+name = "todos"
 
 [features]
 debug = []
