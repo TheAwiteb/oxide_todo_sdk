@@ -46,10 +46,10 @@ Check out the [documentation](https://docs.rs/oxide_todo_sdk) for more informati
     - [x] Get Todo
     - [x] Update Todo
     - [X] Delete Todo
-    - [ ] List Todos (including search)
+    - [X] List Todos (including search)
     - [ ] Delete All Todos
 - [Server Metadata]
-    - [x] Get Server Metadata
+    - [ ] Get Server Metadata
 
 ## Contributing
 If you want to contribute to this project, feel free to open a pull request. If you want to add a new feature, please open an issue first. If you have any questions, feel free to open an issue.
