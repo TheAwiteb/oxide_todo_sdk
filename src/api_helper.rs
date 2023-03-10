@@ -86,6 +86,8 @@ pub enum Endpoints<'a> {
     },
     /// The get todos endpoint. This endpoint is used to get all the todos. (GET)
     GetTodos(&'a Todos),
+    /// The delete todos endpoint. This endpoint is used to delete all the todos. (DELETE)
+    DeleteTodos { base_url: &'a str, token: &'a str },
 }
 
 impl<'a> Endpoints<'a> {
@@ -96,7 +98,9 @@ impl<'a> Endpoints<'a> {
             Register { base_url, .. } => format!("{base_url}/api/auth/register"),
             Login { base_url, .. } => format!("{base_url}/api/auth/login"),
             RevokeToken { base_url, .. } => format!("{base_url}/api/auth/revoke"),
-            CreateTodo { base_url, .. } => format!("{base_url}/api/todos"),
+            CreateTodo { base_url, .. } | DeleteTodos { base_url, .. } => {
+                format!("{base_url}/api/todos")
+            }
             GetTodos(Todos { base_url, .. }) => format!("{base_url}/api/todos"),
             GetTodo { base_url, uuid, .. }
             | UpdateTodo { base_url, uuid, .. }
@@ -111,7 +115,7 @@ impl<'a> Endpoints<'a> {
             RevokeToken { .. } => reqwest::Method::PATCH,
             UpdateTodo { .. } => reqwest::Method::PUT,
             GetTodo { .. } | GetTodos { .. } => reqwest::Method::GET,
-            DeleteTodo { .. } => reqwest::Method::DELETE,
+            DeleteTodo { .. } | DeleteTodos { .. } => reqwest::Method::DELETE,
         }
     }
     /// Returns the user token if the endpoint requires the user to be logged in.
@@ -125,6 +129,7 @@ impl<'a> Endpoints<'a> {
             | CreateTodo { token, .. }
             | UpdateTodo { token, .. }
             | DeleteTodo { token, .. }
+            | DeleteTodos { token, .. }
             | RevokeToken { token, .. } => Some(token),
         }
     }
