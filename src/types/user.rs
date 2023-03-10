@@ -131,4 +131,26 @@ impl User {
     pub fn todos(&self) -> Todos {
         Todos::new(&self.base_url, &self.token)
     }
+
+    /// Deletes all the todos of the user.
+    /// ### Example
+    /// ```rust |no_run
+    /// use oxide_todo_sdk::Client;
+    /// use oxide_todo_sdk::errors::Result as OxideResult;
+    ///
+    /// #[tokio::main]
+    /// async fn main() -> OxideResult<()> {
+    ///     let user = Client::new("http://localhost:8080").login_by_token("YOUR_TOKEN");
+    ///     // Delete all the todos of the user
+    ///     user.delete_all_todos().await
+    /// }
+    /// ```
+    pub async fn delete_all_todos(&self) -> OxideResult<()> {
+        Endpoints::DeleteTodos {
+            base_url: &self.base_url,
+            token: &self.token,
+        }
+        .await?;
+        Ok(())
+    }
 }
