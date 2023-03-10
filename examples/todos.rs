@@ -1,5 +1,5 @@
 use oxide_todo_sdk::errors::Result as OxideResult;
-use oxide_todo_sdk::types::{TodoStatus, TodoOrder};
+use oxide_todo_sdk::types::{TodoOrder, TodoStatus};
 use oxide_todo_sdk::Client;
 
 #[tokio::main]
@@ -38,6 +38,9 @@ async fn main() -> OxideResult<()> {
         .for_each(|todo| {
             println!(" - {}", todo.title().unwrap());
         });
+
+    // Delete all the todos.
+    user.delete_all_todos().await?;
 
     Ok(())
 }
